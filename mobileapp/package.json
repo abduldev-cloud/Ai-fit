@@ -3,11 +3,11 @@
   "main": "expo/AppEntry.js",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "node -e \"const fs=require('fs'); if(fs.existsSync('../backend/.env')) fs.copyFileSync('../backend/.env', '.env')\" && expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "android": "node -e \"const fs=require('fs'); if(fs.existsSync('../backend/.env')) fs.copyFileSync('../backend/.env', '.env')\" && expo start --android",
+    "ios": "node -e \"const fs=require('fs'); if(fs.existsSync('../backend/.env')) fs.copyFileSync('../backend/.env', '.env')\" && expo start --ios",
+    "web": "node -e \"const fs=require('fs'); if(fs.existsSync('../backend/.env')) fs.copyFileSync('../backend/.env', '.env')\" && expo start --web",
     "lint": "expo lint"
   },
   "dependencies": {
