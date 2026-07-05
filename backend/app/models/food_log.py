@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, JSON
 from sqlalchemy.sql import func
 from app.db.session import Base
 
@@ -15,5 +15,6 @@ class FoodLog(Base):
     protein = Column(Float, default=0.0)
     carbs = Column(Float, default=0.0)
     fat = Column(Float, default=0.0)
+    micronutrients = Column(JSON, nullable=True)
     
     logged_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -23,7 +23,14 @@ def estimate_nutrition(text_input: str) -> Dict[str, Any]:
         "calories": integer,
         "protein": float (grams),
         "carbs": float (grams),
-        "fat": float (grams)
+        "fat": float (grams),
+        "micronutrients": {{
+             "Fiber": "string e.g. 2g",
+             "Sodium": "string e.g. 150mg",
+             "Sugar": "string e.g. 5g",
+             "Vitamins/Minerals": "summary list e.g. Vitamin C: 20%, Iron: 4%"
+             // Include any other notable nutrients if present in this food, as key-value pairs where values are strings. If none, return empty object.
+        }}
     }}
     
     If the input is unclear, make your best professional estimate for a standard portion.
@@ -48,7 +55,8 @@ def estimate_nutrition(text_input: str) -> Dict[str, Any]:
             "calories": int(nutrition_data.get("calories", 0)),
             "protein": float(nutrition_data.get("protein", 0)),
             "carbs": float(nutrition_data.get("carbs", 0)),
-            "fat": float(nutrition_data.get("fat", 0))
+            "fat": float(nutrition_data.get("fat", 0)),
+            "micronutrients": dict(nutrition_data.get("micronutrients", {}))
         }
         
     except Exception as e:
@@ -60,6 +68,7 @@ def estimate_nutrition(text_input: str) -> Dict[str, Any]:
             "protein": 0.0,
             "carbs": 0.0,
             "fat": 0.0,
+            "micronutrients": {},
             "error": str(e)
         }
 
@@ -74,7 +83,14 @@ def estimate_nutrition_from_image(image_b64: str) -> Dict[str, Any]:
         "calories": integer,
         "protein": float,
         "carbs": float,
-        "fat": float
+        "fat": float,
+        "micronutrients": {
+             "Fiber": "string e.g. 2g",
+             "Sodium": "string e.g. 150mg",
+             "Sugar": "string e.g. 5g",
+             "Vitamins/Minerals": "summary list e.g. Vitamin C: 20%, Iron: 4%"
+             // Include any other notable nutrients if present in this food, as key-value pairs where values are strings. If none, return empty object.
+        }
     }
     
     If the image is unclear or doesn't contain food, return 0 for everything and explain in the food_name.
@@ -102,7 +118,8 @@ def estimate_nutrition_from_image(image_b64: str) -> Dict[str, Any]:
             "calories": int(nutrition_data.get("calories", 0)),
             "protein": float(nutrition_data.get("protein", 0)),
             "carbs": float(nutrition_data.get("carbs", 0)),
-            "fat": float(nutrition_data.get("fat", 0))
+            "fat": float(nutrition_data.get("fat", 0)),
+            "micronutrients": dict(nutrition_data.get("micronutrients", {}))
         }
         
     except Exception as e:
@@ -113,5 +130,6 @@ def estimate_nutrition_from_image(image_b64: str) -> Dict[str, Any]:
             "protein": 0.0,
             "carbs": 0.0,
             "fat": 0.0,
+            "micronutrients": {},
             "error": str(e)
         }

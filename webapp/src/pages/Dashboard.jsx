@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Zap, Target, Flame, LogOut, User as UserIcon
+  Zap, Target, Flame, LogOut, User as UserIcon, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { userService, foodService } from '../services/api';
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLog, setSelectedLog] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -30,6 +31,22 @@ const Dashboard = () => {
       setHistory(historyData);
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (!window.confirm("Are you sure you want to clear your entire food logging history? This cannot be undone.")) {
+      return;
+    }
+    try {
+      setLoading(true);
+      await foodService.clearHistory();
+      await fetchData();
+    } catch (err) {
+      console.error("Clear history error:", err);
+      alert("Failed to clear food history.");
     } finally {
       setLoading(false);
     }
@@ -100,7 +117,30 @@ const Dashboard = () => {
 
           {/* History */}
           <div className="glass-card">
-            <h3 style={{ marginBottom: '1.5rem' }}>Recent History</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0 }}>Recent History</h3>
+              {history.length > 0 && (
+                <button 
+                  onClick={handleClearHistory} 
+                  className="glass-card" 
+                  style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: '8px', 
+                    cursor: 'pointer', 
+                    border: 'none', 
+                    color: 'var(--accent)',
+                    fontSize: '0.8rem',
+                    background: 'rgba(255, 0, 84, 0.05)',
+                    transition: 'all 0.2s ease',
+                    boxShadow: 'none'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 0, 84, 0.15)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 0, 84, 0.05)'}
+                >
+                  Clear History
+                </button>
+              )}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <AnimatePresence>
                 {history.map((log) => (
@@ -108,6 +148,7 @@ const Dashboard = () => {
                     key={log.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
+                    onClick={() => setSelectedLog(log)}
                     style={{ 
                       padding: '1rem', 
                       background: 'rgba(255,255,255,0.02)', 
@@ -115,8 +156,10 @@ const Dashboard = () => {
                       display: 'flex', 
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      border: '1px solid rgba(255,255,255,0.05)'
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      cursor: 'pointer'
                     }}
+                    whileHover={{ scale: 1.01, borderColor: 'rgba(142, 249, 243, 0.2)' }}
                   >
                     <div>
                       <h4 style={{ color: 'var(--primary)' }}>{log.food_name}</h4>
@@ -156,6 +199,104 @@ const Dashboard = () => {
         </aside>
 
       </div>
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {selectedLog && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedLog(null)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+              padding: '1rem'
+            }}
+          >
+            <motion.div 
+              initial={{ y: 50, scale: 0.95 }}
+              animate={{ y: 0, scale: 1 }}
+              exit={{ y: 50, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-card"
+              style={{
+                width: '100%',
+                maxWidth: '500px',
+                position: 'relative',
+                border: '1px solid rgba(142, 249, 243, 0.2)',
+                padding: '2.5rem'
+              }}
+            >
+              <button 
+                onClick={() => setSelectedLog(null)} 
+                style={{
+                  position: 'absolute',
+                  top: '1.5rem',
+                  right: '1.5rem',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={24} />
+              </button>
+
+              <span style={{ color: 'var(--primary)', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Meal Details</span>
+              <h2 style={{ fontSize: '1.8rem', margin: '0.5rem 0 1.5rem 0', color: '#fff' }}>{selectedLog.food_name}</h2>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem', textAlign: 'center' }}>
+                <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Calories</span>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: '0.25rem' }}>{selectedLog.calories} kcal</p>
+                </div>
+                <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Protein</span>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: '0.25rem', color: 'var(--primary)' }}>{selectedLog.protein}g</p>
+                </div>
+                <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Carbs</span>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: '0.25rem', color: '#ffd166' }}>{selectedLog.carbs}g</p>
+                </div>
+                <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Fat</span>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: '0.25rem', color: 'var(--accent)' }}>{selectedLog.fat}g</p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem' }}>
+                <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-muted)' }}>Micronutrients & Details</h4>
+                {selectedLog.micronutrients && Object.keys(selectedLog.micronutrients).length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    {Object.entries(selectedLog.micronutrients).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', paddingBottom: '0.4rem', borderBottom: '1px dashed rgba(255,255,255,0.04)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>{key}</span>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No additional micronutrients recorded for this entry.</p>
+                )}
+              </div>
+
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2rem', textAlign: 'right' }}>
+                Logged at {new Date(selectedLog.logged_at).toLocaleString()}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

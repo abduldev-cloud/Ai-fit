@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Image as ImageIcon } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, X } from 'lucide-react-native';
 import { userService, foodService } from '../services/api';
 
 const DashboardScreen = ({ navigation }) => {
@@ -14,6 +14,7 @@ const DashboardScreen = ({ navigation }) => {
   const [foodText, setFoodText] = useState('');
   const [logging, setLogging] = useState(false);
   const [estimatedData, setEstimatedData] = useState(null);
+  const [selectedLog, setSelectedLog] = useState(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -112,6 +113,31 @@ const DashboardScreen = ({ navigation }) => {
     }
   };
 
+  const handleClearHistory = async () => {
+    Alert.alert(
+      "Clear History",
+      "Are you sure you want to clear your entire food logging history? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Clear", 
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await foodService.clearHistory();
+              await fetchData();
+            } catch (err) {
+              Alert.alert("Error", "Failed to clear history.");
+            } finally {
+              setLoading(false);
+            }
+          } 
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
@@ -176,7 +202,19 @@ const DashboardScreen = ({ navigation }) => {
             <View style={styles.previewCard}>
               <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>{estimatedData.food_name}</Text>
               <Text style={{color: '#8ef9f3', fontSize: 24, marginVertical: 10}}>{estimatedData.calories} kcal</Text>
-              <Text style={{color: '#aaa', marginBottom: 15}}>Protein: {estimatedData.protein}g | Carbs: {estimatedData.carbs}g | Fat: {estimatedData.fat}g</Text>
+              <Text style={{color: '#aaa', marginBottom: 10}}>Protein: {estimatedData.protein}g | Carbs: {estimatedData.carbs}g | Fat: {estimatedData.fat}g</Text>
+              
+              {estimatedData.micronutrients && Object.keys(estimatedData.micronutrients).length > 0 && (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginBottom: 15 }}>
+                  {Object.entries(estimatedData.micronutrients).map(([key, val]) => (
+                    <View key={key} style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}>
+                      <Text style={{ color: '#aaa', fontSize: 11 }}>
+                        <Text style={{ fontWeight: 'bold', color: '#ccc' }}>{key}:</Text> {val}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
               
               <View style={{flexDirection: 'row', gap: 10}}>
                 <TouchableOpacity style={[styles.logBtn, {flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: '#888'}]} onPress={() => setEstimatedData(null)} disabled={logging}>
@@ -191,21 +229,89 @@ const DashboardScreen = ({ navigation }) => {
         </View>
 
         {/* History List */}
-        <Text style={styles.historyTitle}>Recent History</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+          <Text style={[styles.historyTitle, { marginBottom: 0 }]}>Recent History</Text>
+          {history.length > 0 && (
+            <TouchableOpacity onPress={handleClearHistory} style={styles.clearBtn}>
+              <Text style={styles.clearBtnText}>Clear History</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         {history.map((log) => (
-          <View key={log.id} style={styles.historyCard}>
+          <TouchableOpacity key={log.id} style={styles.historyCard} onPress={() => setSelectedLog(log)}>
             <View>
               <Text style={styles.foodName}>{log.food_name}</Text>
               <Text style={styles.foodTime}>{new Date(log.logged_at).toLocaleTimeString()}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.foodCals}>{log.calories} kcal</Text>
-              <Text style={styles.foodMacros}>P: {log.protein}g | C: {log.carbs}g</Text>
+              <Text style={styles.foodMacros}>P: {log.protein}g | C: {log.carbs}g | F: {log.fat}g</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
 
       </ScrollView>
+
+      {/* Details Modal */}
+      <Modal
+        visible={!!selectedLog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSelectedLog(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity 
+              style={styles.modalCloseBtn} 
+              onPress={() => setSelectedLog(null)}
+            >
+              <X color="#888" size={24} />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTag}>Meal Details</Text>
+            <Text style={styles.modalTitle}>{selectedLog?.food_name}</Text>
+
+            {/* Macros Grid */}
+            <View style={styles.modalMacrosGrid}>
+              <View style={styles.modalMacroBox}>
+                <Text style={styles.modalMacroLabel}>Calories</Text>
+                <Text style={styles.modalMacroVal}>{selectedLog?.calories} kcal</Text>
+              </View>
+              <View style={styles.modalMacroBox}>
+                <Text style={[styles.modalMacroLabel, { color: '#8ef9f3' }]}>Protein</Text>
+                <Text style={styles.modalMacroVal}>{selectedLog?.protein}g</Text>
+              </View>
+              <View style={styles.modalMacroBox}>
+                <Text style={[styles.modalMacroLabel, { color: '#ffd166' }]}>Carbs</Text>
+                <Text style={styles.modalMacroVal}>{selectedLog?.carbs}g</Text>
+              </View>
+              <View style={styles.modalMacroBox}>
+                <Text style={[styles.modalMacroLabel, { color: '#ff0054' }]}>Fat</Text>
+                <Text style={styles.modalMacroVal}>{selectedLog?.fat}g</Text>
+              </View>
+            </View>
+
+            {/* Micronutrients */}
+            <Text style={styles.modalSectionTitle}>Micronutrients & Details</Text>
+            <ScrollView style={{ maxHeight: 200, marginBottom: 15 }}>
+              {selectedLog?.micronutrients && Object.keys(selectedLog.micronutrients).length > 0 ? (
+                Object.entries(selectedLog.micronutrients).map(([key, val]) => (
+                  <View key={key} style={styles.microRow}>
+                    <Text style={styles.microKey}>{key}</Text>
+                    <Text style={styles.microVal}>{val}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noMicroText}>No additional micronutrients recorded for this entry.</Text>
+              )}
+            </ScrollView>
+
+            <Text style={styles.modalFooterText}>
+              Logged at {selectedLog ? new Date(selectedLog.logged_at).toLocaleString() : ''}
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -232,10 +338,28 @@ const styles = StyleSheet.create({
 
   historyTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 15 },
   historyCard: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#1a1a1f', borderRadius: 12, padding: 15, marginBottom: 10 },
+  clearBtn: { backgroundColor: 'rgba(255, 0, 84, 0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(255, 0, 84, 0.2)' },
+  clearBtnText: { color: '#ff0054', fontWeight: 'bold', fontSize: 13 },
   foodName: { color: '#8ef9f3', fontSize: 16, fontWeight: 'bold' },
   foodTime: { color: '#888', fontSize: 12, marginTop: 4 },
   foodCals: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   foodMacros: { color: '#888', fontSize: 12, marginTop: 4 },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#1a1a1f', borderRadius: 20, width: '100%', maxWidth: 400, padding: 25, borderWidth: 1, borderColor: 'rgba(142, 249, 243, 0.2)', position: 'relative' },
+  modalCloseBtn: { position: 'absolute', top: 15, right: 15 },
+  modalTag: { color: '#8ef9f3', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 5 },
+  modalTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 20, marginRight: 25 },
+  modalMacrosGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
+  modalMacroBox: { flex: 1, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: 8, marginHorizontal: 3, alignItems: 'center' },
+  modalMacroLabel: { color: '#888', fontSize: 10, marginBottom: 3 },
+  modalMacroVal: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+  modalSectionTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', paddingBottom: 6 },
+  microRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  microKey: { color: '#888', fontSize: 14 },
+  microVal: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+  noMicroText: { color: '#666', fontSize: 14, fontStyle: 'italic', paddingVertical: 10 },
+  modalFooterText: { color: '#555', fontSize: 11, textAlign: 'right', marginTop: 10 },
 });
 
 export default DashboardScreen;

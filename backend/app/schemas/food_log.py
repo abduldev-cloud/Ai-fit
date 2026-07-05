@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
 
 class FoodLogBase(BaseModel):
@@ -8,6 +8,7 @@ class FoodLogBase(BaseModel):
     protein: float = 0.0
     carbs: float = 0.0
     fat: float = 0.0
+    micronutrients: Optional[Dict[str, str]] = None
 
 class FoodLogCreate(BaseModel):
     text_input: str # "2 dosa and chutney"

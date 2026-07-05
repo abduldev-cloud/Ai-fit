@@ -157,11 +157,30 @@ const FoodLogger = ({ onLogSuccess }) => {
             <p style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '1rem 0' }}>
               {estimatedData.calories} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>kcal</span>
             </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
               <span>Protein: <strong style={{color: '#fff'}}>{estimatedData.protein}g</strong></span>
               <span>Carbs: <strong style={{color: '#fff'}}>{estimatedData.carbs}g</strong></span>
               <span>Fat: <strong style={{color: '#fff'}}>{estimatedData.fat}g</strong></span>
             </div>
+            {estimatedData.micronutrients && Object.keys(estimatedData.micronutrients).length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                {Object.entries(estimatedData.micronutrients).map(([key, val]) => (
+                  <span 
+                    key={key} 
+                    style={{ 
+                      padding: '4px 10px', 
+                      background: 'rgba(255,255,255,0.03)', 
+                      border: '1px solid rgba(255,255,255,0.08)', 
+                      borderRadius: '8px', 
+                      fontSize: '0.75rem', 
+                      color: 'var(--text-muted)' 
+                    }}
+                  >
+                    <strong>{key}:</strong> {val}
+                  </span>
+                ))}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button 
                 onClick={handleDiscard}

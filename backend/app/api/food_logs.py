@@ -37,7 +37,8 @@ def log_food_ai(
         calories=nutrition.get("calories", 0),
         protein=nutrition.get("protein", 0.0),
         carbs=nutrition.get("carbs", 0.0),
-        fat=nutrition.get("fat", 0.0)
+        fat=nutrition.get("fat", 0.0),
+        micronutrients=nutrition.get("micronutrients", {})
     )
     db.add(new_log)
     db.commit()
@@ -59,7 +60,8 @@ def log_food_direct(
         calories=food_in.calories,
         protein=food_in.protein,
         carbs=food_in.carbs,
-        fat=food_in.fat
+        fat=food_in.fat,
+        micronutrients=food_in.micronutrients
     )
     db.add(new_log)
     db.commit()
@@ -75,3 +77,14 @@ def get_food_history(
 ):
     """Retrieve the recent food logs for the current user."""
     return db.query(FoodLog).filter(FoodLog.user_id == current_user.id).order_by(FoodLog.logged_at.desc()).limit(limit).all()
+
+
+@router.delete("/history")
+def clear_food_history(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete all food logs for the current user."""
+    db.query(FoodLog).filter(FoodLog.user_id == current_user.id).delete()
+    db.commit()
+    return {"message": "Food history cleared successfully"}

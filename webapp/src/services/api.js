@@ -72,6 +72,10 @@ export const foodService = {
   getHistory: async () => {
     const response = await api.get('/food/history');
     return response.data;
+  },
+  clearHistory: async () => {
+    const response = await api.delete('/food/history');
+    return response.data;
   }
 };
 
