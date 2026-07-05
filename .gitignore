@@ -1,0 +1,113 @@
+# ====================================================================
+# Ai-Fit Monorepo .gitignore
+# ====================================================================
+
+# --------------------------------------------------------------------
+# 1. Dependency Directories
+# --------------------------------------------------------------------
+node_modules/
+jspm_packages/
+web_modules/
+
+# --------------------------------------------------------------------
+# 2. Python Backend (Python virtual envs, caches, test results)
+# --------------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+# --------------------------------------------------------------------
+# 3. Environment Variable & Local Config Files
+# --------------------------------------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+*.env
+*.pem
+
+# --------------------------------------------------------------------
+# 4. Mobile & Expo Specific
+# --------------------------------------------------------------------
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
+app-example/
+
+# Native directories (if they are generated in the mobile app root)
+mobileapp/ios/
+mobileapp/android/
+/ios/
+/android/
+
+# Native Mobile credentials & logs
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+.kotlin/
+.metro-health-check*
+
+# --------------------------------------------------------------------
+# 5. Build Outputs (Web/Generic)
+# --------------------------------------------------------------------
+build/
+bin/
+obj/
+out/
+.next/
+
+# --------------------------------------------------------------------
+# 6. Log Files
+# --------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --------------------------------------------------------------------
+# 7. Editor & IDE Configurations
+# --------------------------------------------------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.project
+.classpath
+.settings/
+
+# --------------------------------------------------------------------
+# 8. Operating System Files
+# --------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
