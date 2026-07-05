@@ -15,8 +15,23 @@ if "localhost" not in SQLALCHEMY_DATABASE_URL and "127.0.0.1" not in SQLALCHEMY_
     if "mysqlconnector" in SQLALCHEMY_DATABASE_URL:
         connect_args = {"ssl_disabled": False}
     else:
-        # PyMySQL/mysqlclient expect {"ssl": {}} to enforce TLS connection
-        connect_args = {"ssl": {}}
+        # Search for standard Linux root certificate bundles (necessary for TiDB Serverless)
+        import os
+        ca_path = None
+        for path in [
+            "/etc/ssl/certs/ca-certificates.crt", # Debian/Ubuntu/Gentoo (Render)
+            "/etc/pki/tls/certs/ca-bundle.crt",    # Fedora/CentOS/RHEL
+            "/etc/ssl/ca-bundle.pem",              # OpenSUSE
+            "/etc/ssl/cert.pem",                   # Alpine/macOS
+        ]:
+            if os.path.exists(path):
+                ca_path = path
+                break
+        
+        if ca_path:
+            connect_args = {"ssl": {"ca": ca_path}}
+        else:
+            connect_args = {"ssl": {}}
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
