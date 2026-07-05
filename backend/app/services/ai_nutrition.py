@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 import google.generativeai as genai
 from typing import Dict, Any
 from dotenv import load_dotenv
@@ -81,7 +82,7 @@ def estimate_nutrition_from_image(image_b64: str) -> Dict[str, Any]:
     
     image_part = {
         "mime_type": "image/jpeg",
-        "data": image_b64
+        "data": base64.b64decode(image_b64)
     }
 
     try:

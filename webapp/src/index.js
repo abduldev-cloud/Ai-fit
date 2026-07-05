@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import App from './App';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import './index.css';
 
 // Protected Route Component
@@ -24,6 +25,14 @@ const Root = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           } 
         />

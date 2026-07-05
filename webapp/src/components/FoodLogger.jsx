@@ -53,12 +53,7 @@ const FoodLogger = ({ onLogSuccess }) => {
       const base64 = reader.result.split(',')[1]; // Strip data:image/...;base64, prefix
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:8000/api/v1/food/estimate/image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image_base64: base64 })
-        });
-        const data = await response.json();
+        const data = await foodService.estimateFoodImage(base64);
         setEstimatedData(data);
       } catch (err) {
         console.error("Failed to estimate from image:", err);

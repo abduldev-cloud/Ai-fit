@@ -49,7 +49,7 @@ def update_user_profile(
     if all([weight, height, age, gender_str, activity_val]):
         try:
             # Map activity float to Enums
-            activity_enum = next(a for a in ActivityLevel if a.value == activity_val)
+            activity_enum = next(a for a in ActivityLevel if float(a.value) == float(activity_val))
             
             daily_goal = calculate_daily_calories(
                 weight=weight,

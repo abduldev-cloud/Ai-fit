@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon } from 'lucide-react-native';
 import { userService, foodService } from '../services/api';
@@ -14,9 +15,11 @@ const DashboardScreen = ({ navigation }) => {
   const [logging, setLogging] = useState(false);
   const [estimatedData, setEstimatedData] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const fetchData = async () => {
     try {
@@ -31,7 +34,10 @@ const DashboardScreen = ({ navigation }) => {
     }
   };
 
-  const totals = history.reduce((acc, log) => ({
+  const today = new Date().toDateString();
+  const todayLogs = history.filter(log => new Date(log.logged_at).toDateString() === today);
+
+  const totals = todayLogs.reduce((acc, log) => ({
     calories: acc.calories + log.calories,
     protein: acc.protein + log.protein,
     carbs: acc.carbs + log.carbs,
@@ -123,9 +129,6 @@ const DashboardScreen = ({ navigation }) => {
             <Text style={styles.title}>FitMind AI</Text>
             <Text style={styles.subtitle}>Welcome back, {user?.full_name}</Text>
           </View>
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Stats Grid */}

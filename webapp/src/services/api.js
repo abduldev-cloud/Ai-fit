@@ -61,6 +61,10 @@ export const foodService = {
     const response = await api.post('/food/estimate', { text_input: textInput });
     return response.data;
   },
+  estimateFoodImage: async (base64string) => {
+    const response = await api.post('/food/estimate/image', { image_base64: base64string });
+    return response.data;
+  },
   logFoodDirect: async (foodData) => {
     const response = await api.post('/food/log/direct', foodData);
     return response.data;

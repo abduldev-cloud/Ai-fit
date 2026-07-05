@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Zap, Target, Flame, LogOut 
+  Zap, Target, Flame, LogOut, User as UserIcon
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { userService, foodService } from '../services/api';
 import FoodLogger from '../components/FoodLogger';
 import { 
@@ -10,6 +11,7 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,10 @@ const Dashboard = () => {
     }
   };
 
-  const totals = history.reduce((acc, log) => ({
+  const today = new Date().toDateString();
+  const todayLogs = history.filter(log => new Date(log.logged_at).toDateString() === today);
+
+  const totals = todayLogs.reduce((acc, log) => ({
     calories: acc.calories + log.calories,
     protein: acc.protein + log.protein,
     carbs: acc.carbs + log.carbs,
@@ -57,6 +62,10 @@ const Dashboard = () => {
           <p style={{ color: 'var(--text-muted)' }}>Welcome back, {user?.full_name}</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
+          <button onClick={() => navigate('/profile')} className="glass-card" style={{ padding: '0.8rem 1.2rem', borderRadius: '12px', cursor: 'pointer', border: 'none', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+             <UserIcon size={20} />
+             <span>Profile</span>
+          </button>
           <button onClick={() => {localStorage.removeItem('token'); window.location.href='/';}} className="glass-card" style={{ padding: '0.8rem 1.2rem', borderRadius: '12px', cursor: 'pointer', border: 'none', color: 'var(--accent)' }}>
              <LogOut size={20} />
           </button>

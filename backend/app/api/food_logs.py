@@ -71,7 +71,7 @@ def log_food_direct(
 def get_food_history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    limit: int = 20
+    limit: int = 100
 ):
     """Retrieve the recent food logs for the current user."""
     return db.query(FoodLog).filter(FoodLog.user_id == current_user.id).order_by(FoodLog.logged_at.desc()).limit(limit).all()
