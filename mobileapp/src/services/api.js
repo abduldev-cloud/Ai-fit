@@ -1,10 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// const API_URL = 'http://10.125.72.3:8000/api/v1'; // Phone connection link
-// const API_URL = 'http://10.124.96.166:8000/api/v1'; //dept link
-const API_URL = 'http://192.168.29.106:8000/api/v1'; // Current Wi-Fi IP
-// const API_URL = 'http://10.145.196.127:8000/api/v1'; // Correct Shiva Hotspot IP
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.29.106:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
